@@ -2,8 +2,6 @@ import './style.css';
 import {
   STAYS,
   EMERGENCY,
-  SAFETY_CHECKLIST,
-  MAT_MESSAGE_TEMPLATE,
   type Stay,
   type StayId,
   pickActiveStayId,
@@ -23,12 +21,27 @@ import {
   getManualStayOverride,
   setManualStayOverride,
 } from './storage';
+import {
+  type Lang,
+  getLang,
+  setLang,
+  localeFor,
+  t,
+  SAFETY_CHECKLIST_I18N,
+  MAT_MESSAGE_I18N,
+  EMERGENCY_LABELS,
+} from './i18n';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 
 let selectedId: StayId = getManualStayOverride() ?? pickActiveStayId();
+let lang: Lang = getLang();
 let torchStream: MediaStream | null = null;
 let torchOn = false;
+
+function applyDocumentLang(): void {
+  document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
+}
 
 function toast(msg: string): void {
   let el = document.querySelector<HTMLDivElement>('.toast');
@@ -50,7 +63,6 @@ async function copyText(text: string, okMsg: string): Promise<void> {
     await navigator.clipboard.writeText(text);
     toast(okMsg);
   } catch {
-    // Fallback for older WebViews
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.style.position = 'fixed';
@@ -61,19 +73,23 @@ async function copyText(text: string, okMsg: string): Promise<void> {
       document.execCommand('copy');
       toast(okMsg);
     } catch {
-      toast('Copy failed');
+      toast(t(lang, 'toastCopyFailed'));
     }
     ta.remove();
   }
 }
 
 function stayPhase(stay: Stay, now = new Date()): string {
-  const t = now.getTime();
+  const tm = now.getTime();
   const inT = parseStayDate(stay.checkIn).getTime();
   const outT = parseStayDate(stay.checkOut).getTime();
-  if (t < inT) return 'upcoming';
-  if (t >= outT) return 'past';
+  if (tm < inT) return 'upcoming';
+  if (tm >= outT) return 'past';
   return 'now';
+}
+
+function fmtDate(s: string): string {
+  return formatStayDateTime(s, localeFor(lang));
 }
 
 function countdownBits(stay: Stay, now = new Date()): { primary: string; secondary: string } {
@@ -84,9 +100,13 @@ function countdownBits(stay: Stay, now = new Date()): { primary: string; seconda
 
   if (phase === 'upcoming') {
     const days = Math.ceil((inn.getTime() - now.getTime()) / 86_400_000);
+    const nightsKey = nights === 1 ? 'nightsLabel' : 'nightsLabelPlural';
     return {
-      primary: days <= 0 ? 'Check-in today' : `Check-in in ${days} day${days === 1 ? '' : 's'}`,
-      secondary: `${nights} night${nights === 1 ? '' : 's'} · ${formatStayDateTime(stay.checkIn)}`,
+      primary:
+        days <= 0
+          ? t(lang, 'checkInToday')
+          : t(lang, days === 1 ? 'checkInInDays' : 'checkInInDaysPlural', { n: days }),
+      secondary: `${t(lang, nightsKey, { n: nights })} · ${fmtDate(stay.checkIn)}`,
     };
   }
   if (phase === 'now') {
@@ -102,21 +122,24 @@ function countdownBits(stay: Stay, now = new Date()): { primary: string; seconda
     );
     if (hoursLeft <= 24) {
       return {
-        primary: hoursLeft <= 1 ? 'Check-out soon' : `${hoursLeft}h until check-out`,
-        secondary: `Check-out ${formatStayDateTime(stay.checkOut)}`,
+        primary:
+          hoursLeft <= 1
+            ? t(lang, 'checkOutSoon')
+            : t(lang, 'hoursUntilCheckout', { n: hoursLeft }),
+        secondary: t(lang, 'checkoutAt', { date: fmtDate(stay.checkOut) }),
       };
     }
     return {
       primary:
         nightsLeft <= 1
-          ? 'Last night · check-out tomorrow'
-          : `${nightsLeft} nights left`,
-      secondary: `Check-out ${formatStayDateTime(stay.checkOut)}`,
+          ? t(lang, 'lastNight')
+          : t(lang, 'nightsLeft', { n: nightsLeft }),
+      secondary: t(lang, 'checkoutAt', { date: fmtDate(stay.checkOut) }),
     };
   }
   return {
-    primary: 'Stay complete',
-    secondary: `Checked out ${formatStayDateTime(stay.checkOut)}`,
+    primary: t(lang, 'stayComplete'),
+    secondary: t(lang, 'checkedOut', { date: fmtDate(stay.checkOut) }),
   };
 }
 
@@ -124,30 +147,60 @@ function shortCity(city: string): string {
   return city.split(',')[0]!;
 }
 
+function heroCityLabel(stay: Stay): string {
+  return lang === 'ja' ? stay.cityJa : shortCity(stay.city);
+}
+
+function heroSubLabel(stay: Stay): string {
+  return lang === 'ja' ? stay.city : stay.cityJa;
+}
+
+function tipList(stay: Stay): string[] {
+  return lang === 'ja' ? stay.tipsJa : stay.tips;
+}
+
+function emergencyPrimaryLabel(country: Stay['country']): string {
+  return country === 'ES' ? EMERGENCY_LABELS[lang].ES : EMERGENCY_LABELS[lang].AE;
+}
+
+function emergencyAltLabel(): string {
+  return EMERGENCY_LABELS[lang].AE_alt;
+}
+
 function render(): void {
+  applyDocumentLang();
   const stay = getStay(selectedId);
   const autoId = pickActiveStayId();
   const emergency = EMERGENCY[stay.country];
   const bits = countdownBits(stay);
   const online = navigator.onLine;
+  const stayMode = selectedId === autoId ? t(lang, 'todaysStay') : t(lang, 'manual');
+  const tips = tipList(stay);
+  const checklist = SAFETY_CHECKLIST_I18N[lang];
 
   app.innerHTML = `
     <header class="header">
       <div class="brand">
-        <strong>Rie Trip</strong>
-        <span>Barcelona · Madrid · Dubai</span>
+        <strong>${escapeHtml(t(lang, 'appTitle'))}</strong>
+        <span>${escapeHtml(t(lang, 'appSubtitle'))}</span>
       </div>
-      <div class="offline-pill ${online ? 'live' : ''}" id="net-pill">
-        ${online ? 'Online' : 'Offline ready'}
+      <div class="header-right">
+        <div class="lang-toggle" role="group" aria-label="${escapeAttr(t(lang, 'langToggle'))}">
+          <button type="button" class="lang-btn ${lang === 'ja' ? 'active' : ''}" data-lang="ja">${escapeHtml(t(lang, 'langJa'))}</button>
+          <button type="button" class="lang-btn ${lang === 'en' ? 'active' : ''}" data-lang="en">${escapeHtml(t(lang, 'langEn'))}</button>
+        </div>
+        <div class="offline-pill ${online ? 'live' : ''}" id="net-pill">
+          ${online ? escapeHtml(t(lang, 'online')) : escapeHtml(t(lang, 'offlineReady'))}
+        </div>
       </div>
     </header>
 
-    <nav class="switcher" aria-label="Stay switcher">
+    <nav class="switcher" aria-label="${escapeAttr(t(lang, 'staySwitcher'))}">
       ${STAYS.map(
         (s) => `
         <button type="button" class="chip ${s.id === selectedId ? 'active' : ''}" data-stay="${s.id}">
           <span class="flag">${s.flag}</span>
-          <span class="label">${shortCity(s.city)}</span>
+          <span class="label">${escapeHtml(lang === 'ja' ? s.cityJa : shortCity(s.city))}</span>
         </button>`,
       ).join('')}
     </nav>
@@ -155,112 +208,104 @@ function render(): void {
     <section class="hero">
       <div class="flag-city">
         <span class="emoji">${stay.flag}</span>
-        <h1>${shortCity(stay.city)}</h1>
+        <h1>${escapeHtml(heroCityLabel(stay))}</h1>
       </div>
-      <p class="city-ja">${stay.cityJa}${selectedId === autoId ? " · Today's stay" : " · Manual"}</p>
-      <p class="hotel">${stay.hotel}</p>
+      <p class="city-ja">${escapeHtml(heroSubLabel(stay))} · ${escapeHtml(stayMode)}</p>
+      <p class="hotel">${escapeHtml(stay.hotel)}</p>
       <div class="countdown">
-        <span class="badge">${bits.primary}</span>
-        <span class="badge muted">${bits.secondary}</span>
+        <span class="badge">${escapeHtml(bits.primary)}</span>
+        <span class="badge muted">${escapeHtml(bits.secondary)}</span>
       </div>
     </section>
 
     <section class="card">
-      <h2>Stay · 泊まる</h2>
-      <div class="address" id="copy-address" role="button" tabindex="0" title="Tap to copy">
+      <h2>${escapeHtml(t(lang, 'sectionStay'))}</h2>
+      <div class="address" id="copy-address" role="button" tabindex="0" title="${escapeAttr(t(lang, 'tapCopyAddress'))}">
         <div class="v">${escapeHtml(stay.address)}</div>
-        <div class="hint">Tap to copy address · 住所をコピー</div>
+        <div class="hint">${escapeHtml(t(lang, 'tapCopyAddress'))}</div>
       </div>
       <div class="meta-row">
         <div class="meta-item">
-          <span class="k">Check-in · チェックイン</span>
-          <span class="v">${formatStayDateTime(stay.checkIn)} <small style="color:var(--muted)">(local)</small></span>
+          <span class="k">${escapeHtml(t(lang, 'checkIn'))}</span>
+          <span class="v">${escapeHtml(fmtDate(stay.checkIn))} <small style="color:var(--muted)">${escapeHtml(t(lang, 'local'))}</small></span>
         </div>
         <div class="meta-item">
-          <span class="k">Check-out · チェックアウト</span>
-          <span class="v">${formatStayDateTime(stay.checkOut)} <small style="color:var(--muted)">(local)</small></span>
+          <span class="k">${escapeHtml(t(lang, 'checkOut'))}</span>
+          <span class="v">${escapeHtml(fmtDate(stay.checkOut))} <small style="color:var(--muted)">${escapeHtml(t(lang, 'local'))}</small></span>
         </div>
       </div>
       <div class="actions">
         <a class="btn primary" href="${telHref(stay.phone)}">
-          <span class="en">Call hotel</span>
-          <span class="ja">電話</span>
+          <span class="label">${escapeHtml(t(lang, 'callHotel'))}</span>
         </a>
         <a class="btn" href="${mapsUrl(stay.mapsQuery)}" target="_blank" rel="noopener" id="maps-link">
-          <span class="en">Open Maps</span>
-          <span class="ja">地図</span>
+          <span class="label">${escapeHtml(t(lang, 'openMaps'))}</span>
         </a>
         <a class="btn" href="${geoUrl(stay.mapsQuery)}">
-          <span class="en">Geo maps</span>
-          <span class="ja">地図 (geo)</span>
+          <span class="label">${escapeHtml(t(lang, 'geoMaps'))}</span>
         </a>
         <button type="button" class="btn" id="copy-phone">
-          <span class="en">Copy phone</span>
-          <span class="ja">番号コピー</span>
+          <span class="label">${escapeHtml(t(lang, 'copyPhone'))}</span>
         </button>
       </div>
       <div class="field" style="margin-top:14px">
-        <label for="confirm-input">Confirmation # · on this phone only</label>
+        <label for="confirm-input">${escapeHtml(t(lang, 'confirmLabel'))}</label>
         <input
           id="confirm-input"
           type="text"
           inputmode="text"
           autocomplete="off"
           spellcheck="false"
-          placeholder="Add confirmation #"
+          placeholder="${escapeAttr(t(lang, 'confirmPlaceholder'))}"
           value="${escapeAttr(getConfirmation(stay.id))}"
         />
       </div>
     </section>
 
     <section class="card">
-      <h2>Tips · ヒント</h2>
+      <h2>${escapeHtml(t(lang, 'sectionTips'))}</h2>
       <ul class="tips">
-        ${stay.tips.map((t) => `<li>${escapeHtml(t)}</li>`).join('')}
+        ${tips.map((tip) => `<li>${escapeHtml(tip)}</li>`).join('')}
       </ul>
     </section>
 
     <section class="card">
-      <h2>Safety · 緊急</h2>
+      <h2>${escapeHtml(t(lang, 'sectionSafety'))}</h2>
       <ul class="checklist">
-        ${SAFETY_CHECKLIST.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}
+        ${checklist.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}
       </ul>
       <div class="actions">
         <a class="btn danger ${emergency.alt ? '' : 'wide'}" href="${telHref(emergency.police)}">
-          <span class="en">${escapeHtml(emergency.label)}</span>
-          <span class="ja">緊急</span>
+          <span class="label">${escapeHtml(emergencyPrimaryLabel(stay.country))}</span>
         </a>
         ${
           emergency.alt
             ? `<a class="btn danger" href="${telHref(emergency.alt)}">
-                <span class="en">Emergency ${escapeHtml(emergency.alt)}</span>
-                <span class="ja">緊急</span>
+                <span class="label">${escapeHtml(emergencyAltLabel())}</span>
               </a>`
             : ''
         }
       </div>
-      <p class="note">Maps need signal. Hotel text, tips, phones &amp; this checklist work fully offline.</p>
+      <p class="note">${escapeHtml(t(lang, 'safetyNote'))}</p>
     </section>
 
     <section class="card">
-      <h2>Quick tools · ツール</h2>
+      <h2>${escapeHtml(t(lang, 'sectionTools'))}</h2>
       <div class="actions">
         <button type="button" class="btn ${torchOn ? 'on' : ''}" id="torch-btn">
-          <span class="en">${torchOn ? 'Light ON' : 'Flashlight'}</span>
-          <span class="ja">ライト</span>
+          <span class="label">${escapeHtml(t(lang, torchOn ? 'lightOn' : 'flashlight'))}</span>
         </button>
         <button type="button" class="btn" id="copy-msg">
-          <span class="en">Copy Mat msg</span>
-          <span class="ja">メッセージ</span>
+          <span class="label">${escapeHtml(t(lang, 'copyMatMsg'))}</span>
         </button>
       </div>
       <div class="field" style="margin-top:14px">
-        <label for="notes">Personal notes · メモ (saved on device)</label>
-        <textarea id="notes" placeholder="Gate numbers, meeting spots, reminders…">${escapeHtml(getNotes())}</textarea>
+        <label for="notes">${escapeHtml(t(lang, 'notesLabel'))}</label>
+        <textarea id="notes" placeholder="${escapeAttr(t(lang, 'notesPlaceholder'))}">${escapeHtml(getNotes())}</textarea>
       </div>
     </section>
 
-    <p class="footer">Free · no ads · no login · confirmation #s stay on this device</p>
+    <p class="footer">${escapeHtml(t(lang, 'footer'))}</p>
   `;
 
   bind(stay);
@@ -279,6 +324,16 @@ function escapeAttr(s: string): string {
 }
 
 function bind(stay: Stay): void {
+  app.querySelectorAll<HTMLButtonElement>('.lang-btn[data-lang]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const next = btn.dataset.lang as Lang;
+      if (next !== 'ja' && next !== 'en') return;
+      lang = next;
+      setLang(lang);
+      render();
+    });
+  });
+
   app.querySelectorAll<HTMLButtonElement>('.chip[data-stay]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.stay as StayId;
@@ -289,22 +344,22 @@ function bind(stay: Stay): void {
   });
 
   const addr = app.querySelector('#copy-address');
-  addr?.addEventListener('click', () => void copyText(stay.address, 'Address copied'));
+  addr?.addEventListener('click', () => void copyText(stay.address, t(lang, 'toastAddressCopied')));
   addr?.addEventListener('keydown', (e) => {
     if ((e as KeyboardEvent).key === 'Enter' || (e as KeyboardEvent).key === ' ') {
       e.preventDefault();
-      void copyText(stay.address, 'Address copied');
+      void copyText(stay.address, t(lang, 'toastAddressCopied'));
     }
   });
 
   app.querySelector('#copy-phone')?.addEventListener('click', () => {
-    void copyText(stay.phone, 'Phone copied');
+    void copyText(stay.phone, t(lang, 'toastPhoneCopied'));
   });
 
   const confirm = app.querySelector<HTMLInputElement>('#confirm-input');
   confirm?.addEventListener('change', () => {
     setConfirmation(stay.id, confirm.value);
-    toast('Saved on this phone');
+    toast(t(lang, 'toastSaved'));
   });
   confirm?.addEventListener('blur', () => {
     setConfirmation(stay.id, confirm.value);
@@ -318,11 +373,10 @@ function bind(stay: Stay): void {
   });
 
   app.querySelector('#copy-msg')?.addEventListener('click', () => {
-    const msg = MAT_MESSAGE_TEMPLATE.replace('{{hotel}}', stay.hotel).replace(
-      '{{city}}',
-      stay.city,
-    );
-    void copyText(msg, 'Message copied');
+    const msg = MAT_MESSAGE_I18N[lang]
+      .replace('{{hotel}}', stay.hotel)
+      .replace('{{city}}', stay.city);
+    void copyText(msg, t(lang, 'toastMessageCopied'));
   });
 
   app.querySelector('#torch-btn')?.addEventListener('click', () => {
@@ -331,11 +385,10 @@ function bind(stay: Stay): void {
 }
 
 async function toggleTorch(): Promise<void> {
-  // Prefer real torch via ImageCapture / track.applyConstraints
   try {
     if (torchOn && torchStream) {
       await stopTorch();
-      toast('Light off');
+      toast(t(lang, 'toastLightOff'));
       render();
       return;
     }
@@ -356,14 +409,13 @@ async function toggleTorch(): Promise<void> {
       });
       torchStream = stream;
       torchOn = true;
-      toast('Flashlight on');
+      toast(t(lang, 'toastFlashlightOn'));
       render();
       return;
     }
 
-    // No torch capability — release camera and use white screen
     track.stop();
-    stream.getTracks().forEach((t) => t.stop());
+    stream.getTracks().forEach((tr) => tr.stop());
     openWhiteFallback();
   } catch {
     openWhiteFallback();
@@ -372,15 +424,15 @@ async function toggleTorch(): Promise<void> {
 
 async function stopTorch(): Promise<void> {
   if (torchStream) {
-    for (const t of torchStream.getTracks()) {
+    for (const tr of torchStream.getTracks()) {
       try {
-        await t.applyConstraints({
+        await tr.applyConstraints({
           advanced: [{ torch: false } as MediaTrackConstraintSet],
         });
       } catch {
         /* ignore */
       }
-      t.stop();
+      tr.stop();
     }
     torchStream = null;
   }
@@ -393,13 +445,13 @@ function ensureFallbackEl(): HTMLDivElement {
   if (!el) {
     el = document.createElement('div');
     el.id = 'torch-fallback';
-    el.innerHTML = `<div>Tap for light · ライト</div><div class="sub">Tap again to close</div>`;
     el.addEventListener('click', () => {
       void stopTorch();
       render();
     });
     document.body.appendChild(el);
   }
+  el.innerHTML = `<div>${escapeHtml(t(lang, 'torchTap'))}</div><div class="sub">${escapeHtml(t(lang, 'torchClose'))}</div>`;
   return el;
 }
 
@@ -407,14 +459,17 @@ function openWhiteFallback(): void {
   const el = ensureFallbackEl();
   el.classList.add('open');
   torchOn = true;
-  // Try fullscreen for better iOS “flashlight”
-  const req = el.requestFullscreen?.bind(el) ?? (el as HTMLElement & { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen?.bind(el);
+  const req =
+    el.requestFullscreen?.bind(el) ??
+    (el as HTMLElement & { webkitRequestFullscreen?: () => void }).webkitRequestFullscreen?.bind(
+      el,
+    );
   try {
     void req?.();
   } catch {
     /* ignore */
   }
-  toast('Bright screen on');
+  toast(t(lang, 'toastBrightScreen'));
   render();
 }
 
@@ -429,14 +484,13 @@ function closeWhiteFallback(): void {
 window.addEventListener('online', () => render());
 window.addEventListener('offline', () => render());
 
-// Refresh countdown occasionally
 window.setInterval(() => {
-  // Only re-render if still on same stay to avoid stealing focus from inputs
   const active = document.activeElement;
   if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
   render();
 }, 60_000);
 
+applyDocumentLang();
 render();
 
 if ('serviceWorker' in navigator) {

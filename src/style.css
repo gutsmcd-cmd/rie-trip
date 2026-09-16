@@ -71,10 +71,47 @@ textarea {
 
 .header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+}
+
+.header-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.lang-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--card-border);
+  gap: 2px;
+}
+
+.lang-btn {
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  line-height: 1.2;
+  min-height: 28px;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+
+.lang-btn.active {
+  background: rgba(232, 213, 181, 0.22);
+  color: var(--sand);
 }
 
 .brand {
@@ -295,14 +332,10 @@ textarea {
   transform: scale(0.98);
 }
 
-.btn .en {
+.btn .label {
   font-weight: 600;
   font-size: 0.9rem;
-}
-
-.btn .ja {
-  font-size: 0.7rem;
-  color: var(--sand-dim);
+  line-height: 1.25;
 }
 
 .btn.primary {
@@ -311,18 +344,10 @@ textarea {
   border-color: transparent;
 }
 
-.btn.primary .ja {
-  color: rgba(11, 29, 54, 0.7);
-}
-
 .btn.danger {
   background: rgba(232, 93, 93, 0.18);
   border-color: rgba(232, 93, 93, 0.45);
   color: #ffb4b4;
-}
-
-.btn.danger .ja {
-  color: #ffc9c9;
 }
 
 .btn.wide {

@@ -15,6 +15,7 @@ export interface Stay {
   checkOut: string;
   mapsQuery: string;
   tips: string[];
+  tipsJa: string[];
 }
 
 export interface EmergencyInfo {
@@ -43,6 +44,12 @@ export const STAYS: Stay[] = [
       'Be cautious on metro at night — stay aware of surroundings.',
       'Hotel is near Fira Gran Via / Plaza Europa — not old-town center.',
     ],
+    tipsJa: [
+      '観光客狙いの詐欺に注意：偽の署名集め、友情ブレスレット、「鳥のフン」に見せかけて気をそらす手口。',
+      'バッグはファスナーを閉め、体の前で持つ。',
+      '夜の地下鉄は周囲に気をつけて。',
+      'ホテルはFira Gran Via／Plaza Europa付近。旧市街の中心ではありません。',
+    ],
   },
   {
     id: 'mad',
@@ -60,6 +67,11 @@ export const STAYS: Stay[] = [
       'Area: Nuevos Ministerios / Castellana.',
       'Pickpockets on the metro — keep valuables front-facing.',
       'Keep bags closed and phones secure in crowds.',
+    ],
+    tipsJa: [
+      'エリア：ヌエボス・ミニステリオス／カステジャーナ通り付近。',
+      '地下鉄のスリに注意。貴重品は前側に。',
+      '人混みではバッグを閉め、スマホをしっかり持つ。',
     ],
   },
   {
@@ -80,6 +92,12 @@ export const STAYS: Stay[] = [
       'Taxis and metro are normal and easy.',
       'Keep your hotel card on you.',
     ],
+    tipsJa: [
+      'デイラ・シティ・センター近く。',
+      '場所によっては控えめな服装を（肩や膝を覆うなど）。',
+      'タクシーと地下鉄は普通に使えて便利。',
+      'ホテルのカードはいつも持ち歩く。',
+    ],
   },
 ];
 
@@ -97,15 +115,15 @@ export function parseStayDate(s: string): Date {
   return new Date(y, m - 1, d, hh, mm, 0, 0);
 }
 
-export function formatStayDateTime(s: string): string {
+export function formatStayDateTime(s: string, locale = 'en-GB'): string {
   const d = parseStayDate(s);
-  const weekday = d.toLocaleDateString('en-GB', { weekday: 'short' });
-  const day = d.toLocaleDateString('en-GB', {
+  const weekday = d.toLocaleDateString(locale, { weekday: 'short' });
+  const day = d.toLocaleDateString(locale, {
     day: 'numeric',
     month: 'short',
     year: 'numeric',
   });
-  const time = d.toLocaleTimeString('en-GB', {
+  const time = d.toLocaleTimeString(locale, {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
@@ -160,6 +178,7 @@ export function telHref(phone: string): string {
   return `tel:${phone.replace(/[\s()-]/g, '')}`;
 }
 
+/** @deprecated Prefer SAFETY_CHECKLIST_I18N from i18n */
 export const SAFETY_CHECKLIST = [
   'Bag zipped, worn in front',
   'Phone / wallet not in back pocket',
@@ -169,6 +188,7 @@ export const SAFETY_CHECKLIST = [
   'Hotel confirmation # in Settings (this phone only)',
 ];
 
+/** @deprecated Prefer MAT_MESSAGE_I18N from i18n */
 export const MAT_MESSAGE_TEMPLATE = `Hi Mat — I'm OK.
 Hotel: {{hotel}}
 City: {{city}}
