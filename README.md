@@ -7,12 +7,12 @@ Truly free: **no ads, no login, no analytics**. Install on a phone (Add to Home 
 ## Features
 
 - **Today / Home** — auto-selects the active stay from the device date; manual chip switcher for Barcelona, Madrid, Dubai
-- **Stay detail** — address (tap to copy), call hotel, Google Maps + `geo:` links, check-in/out times, tips
-- **Confirmation #** — optional per-stay field stored **only in localStorage on this device** (never shipped in the repo)
+- **App language** — JA / EN toggle (default Japanese). Separate **destination language chips** show languages spoken there (not app UI translation).
+- **Stay detail** — address (tap to copy), call hotel, Google Maps + phone `geo:` links, check-in/out times, tips
+- **Offline maps setup** — steps to download hotel area in Google Maps + per-stay “Prepare offline map” link
+- **Confirmation # & notes** — stored only in localStorage on this device; copy explains they survive reboot and clear only if site data is deleted
 - **Safety** — one-tap emergency call for Spain (112) / UAE (999), offline checklist
-- **Quick tools** — flashlight (torch API or bright white screen), copy a short “I’m OK” message for Mat, personal notes
-
-Bilingual UI: English primary with short Japanese labels on key actions (泊まる / 電話 / 地図 / 緊急 / ライト / メモ).
+- **Quick tools** — flashlight, Translate / Currency / WhatsApp links, Dubai Uber & Careem, custom name+URL shortcuts in localStorage
 
 ## Scripts
 
@@ -31,4 +31,4 @@ PWA uses relative `base: './'` so it works from a project subpath or Pages root.
 
 ## Privacy note
 
-Hilton confirmation numbers are **not** hardcoded. Enter them in Settings-style fields in the app; they remain on-device only.
+Hilton confirmation numbers are **not** hardcoded. Enter them in the app; they remain on-device only.
