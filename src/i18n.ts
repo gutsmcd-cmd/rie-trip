@@ -148,7 +148,6 @@ const en: Dict = {
   tabSwitcher: 'App sections',
   homeGreeting: 'Safe travels, Rie.',
   homeCaption: 'Corgi & axolotl ♥',
-  homeOpenTrip: 'Open trip',
   homePortraitAlt: 'Rie',
   homeBubbleAlt: 'Thought bubble with corgi and axolotl',
 };
@@ -254,7 +253,6 @@ const ja: Dict = {
   tabSwitcher: 'アプリの画面',
   homeGreeting: 'りえ、いってらっしゃい。',
   homeCaption: 'コーギーとウーパールーパー ♥',
-  homeOpenTrip: '旅を開く',
   homePortraitAlt: 'りえ',
   homeBubbleAlt: 'コーギーとウーパールーパーの吹き出し',
 };
@@ -361,7 +359,6 @@ const es: Dict = {
   tabSwitcher: 'Secciones de la app',
   homeGreeting: 'Buen viaje, Rie.',
   homeCaption: 'Corgi y ajolote ♥',
-  homeOpenTrip: 'Abrir viaje',
   homePortraitAlt: 'Rie',
   homeBubbleAlt: 'Bocadillo con corgi y ajolote',
 };
@@ -468,7 +465,6 @@ const ca: Dict = {
   tabSwitcher: "Seccions de l'app",
   homeGreeting: 'Bon viatge, Rie.',
   homeCaption: 'Corgi i axolot ♥',
-  homeOpenTrip: 'Obrir el viatge',
   homePortraitAlt: 'Rie',
   homeBubbleAlt: 'Núvol de pensament amb corgi i axolot',
 };
@@ -574,7 +570,6 @@ const ar: Dict = {
   tabSwitcher: 'أقسام التطبيق',
   homeGreeting: 'رحلة سعيدة، ريي.',
   homeCaption: 'كورغي وأكسولوتل ♥',
-  homeOpenTrip: 'افتح الرحلة',
   homePortraitAlt: 'ريي',
   homeBubbleAlt: 'فقاعة أفكار مع كورغي وأكسولوتل',
 };

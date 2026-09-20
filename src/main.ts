@@ -299,15 +299,7 @@ function appTabsHtml(): string {
 function homeHtml(): string {
   return `
     <section class="home-welcome" aria-label="${escapeAttr(t(lang, 'tabHome'))}">
-      <div class="home-scene">
-        <img
-          class="home-bubble"
-          src="./welcome/thought-bubble.png"
-          alt="${escapeAttr(t(lang, 'homeBubbleAlt'))}"
-          width="720"
-          height="420"
-          decoding="async"
-        />
+      <div class="home-hero">
         <img
           class="home-portrait"
           src="./welcome/rie.png"
@@ -316,12 +308,17 @@ function homeHtml(): string {
           height="712"
           decoding="async"
         />
+        <img
+          class="home-bubble"
+          src="./welcome/thought-bubble.png"
+          alt="${escapeAttr(t(lang, 'homeBubbleAlt'))}"
+          width="720"
+          height="420"
+          decoding="async"
+        />
       </div>
       <p class="home-greeting">${escapeHtml(t(lang, 'homeGreeting'))}</p>
       <p class="home-caption">${escapeHtml(t(lang, 'homeCaption'))}</p>
-      <button type="button" class="btn primary wide home-open-trip" id="open-trip">
-        <span class="label">${escapeHtml(t(lang, 'homeOpenTrip'))}</span>
-      </button>
     </section>`;
 }
 
@@ -581,9 +578,6 @@ function bindChrome(): void {
 
 function bindHome(): void {
   bindChrome();
-  app.querySelector('#open-trip')?.addEventListener('click', () => {
-    switchAppTab('trip');
-  });
 }
 
 function bind(stay: Stay): void {

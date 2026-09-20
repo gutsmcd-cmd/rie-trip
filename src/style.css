@@ -181,20 +181,21 @@ textarea {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   padding: 4px 0 8px;
 }
 
-.home-scene {
+.home-hero {
   position: relative;
   width: 100%;
-  max-width: 360px;
-  aspect-ratio: 1 / 1.05;
-  margin: 0 auto 4px;
+  max-width: 380px;
+  /* taller so bubble can sit above the head */
+  aspect-ratio: 1 / 1.22;
+  margin: 0 auto 2px;
   border-radius: var(--radius);
   overflow: hidden;
   background:
-    radial-gradient(ellipse 70% 55% at 70% 75%, rgba(26, 58, 92, 0.9) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 55% at 72% 78%, rgba(26, 58, 92, 0.9) 0%, transparent 60%),
     linear-gradient(160deg, rgba(18, 42, 74, 0.85), rgba(11, 29, 54, 0.95));
   border: 1px solid var(--card-border);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
@@ -203,22 +204,25 @@ textarea {
 .home-portrait {
   position: absolute;
   right: -4%;
-  bottom: -6%;
-  width: 72%;
+  bottom: 0;
+  width: 90%;
   height: auto;
   object-fit: contain;
   object-position: bottom right;
-  opacity: 0.92;
+  opacity: 0.96;
   filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
   pointer-events: none;
   user-select: none;
+  z-index: 1;
 }
 
 .home-bubble {
   position: absolute;
-  left: 2%;
-  top: 4%;
-  width: 72%;
+  /* trail exits bottom-right of PNG → end near Rie's temple/forehead */
+  left: auto;
+  right: 16%;
+  top: 2%;
+  width: 62%;
   height: auto;
   object-fit: contain;
   /* black plate in PNG blends into navy */
@@ -228,8 +232,6 @@ textarea {
   pointer-events: none;
   user-select: none;
   z-index: 2;
-  /* nudge so trail dots aim at portrait head */
-  transform: translate(2%, 6%);
 }
 
 .home-greeting {
@@ -240,18 +242,37 @@ textarea {
   line-height: 1.35;
   letter-spacing: 0.01em;
   margin-top: 4px;
+  max-width: 22rem;
+  padding: 0 8px;
 }
 
 .home-caption {
   font-size: 0.82rem;
   color: var(--muted);
   text-align: center;
-  margin-top: -6px;
+  margin-top: -4px;
 }
 
-.home-open-trip {
-  margin-top: 8px;
-  max-width: 280px;
+@media (max-width: 420px) {
+  .home-hero {
+    max-width: 100%;
+  }
+
+  .home-portrait {
+    width: 92%;
+    right: -5%;
+    bottom: 0;
+  }
+
+  .home-bubble {
+    width: 64%;
+    right: 12%;
+    top: 1%;
+  }
+
+  .home-greeting {
+    font-size: 1.22rem;
+  }
 }
 
 
@@ -1041,8 +1062,19 @@ html[dir='rtl'] .home-portrait {
 }
 
 html[dir='rtl'] .home-bubble {
-  left: auto;
-  right: 2%;
-  transform: scaleX(-1) translate(2%, 6%);
+  right: auto;
+  left: 16%;
+  /* flip so trail aims at mirrored portrait on the left */
+  transform: scaleX(-1);
+}
+
+@media (max-width: 420px) {
+  html[dir='rtl'] .home-portrait {
+    left: -5%;
+  }
+
+  html[dir='rtl'] .home-bubble {
+    left: 12%;
+  }
 }
 
