@@ -45,6 +45,21 @@ let lang: Lang = getLang();
 let torchStream: MediaStream | null = null;
 let torchOn = false;
 
+type AppTab = 'home' | 'trip';
+const TAB_KEY = 'rie-trip-tab';
+
+function getTab(): AppTab {
+  const v = localStorage.getItem(TAB_KEY);
+  if (v === 'home' || v === 'trip') return v;
+  return 'home';
+}
+
+function setTab(tab: AppTab): void {
+  localStorage.setItem(TAB_KEY, tab);
+}
+
+let currentTab: AppTab = getTab();
+
 const QUICK_LINKS = {
   translate: 'https://translate.google.com/',
   currency: 'https://www.xe.com/currencyconverter/',
@@ -268,21 +283,53 @@ function customShortcutsHtml(): string {
     </div>`;
 }
 
+
+function appTabsHtml(): string {
+  return `
+    <nav class="app-tabs" role="tablist" aria-label="${escapeAttr(t(lang, 'tabSwitcher'))}">
+      <button type="button" role="tab" class="app-tab ${currentTab === 'home' ? 'active' : ''}" data-tab="home" aria-selected="${currentTab === 'home' ? 'true' : 'false'}">
+        ${escapeHtml(t(lang, 'tabHome'))}
+      </button>
+      <button type="button" role="tab" class="app-tab ${currentTab === 'trip' ? 'active' : ''}" data-tab="trip" aria-selected="${currentTab === 'trip' ? 'true' : 'false'}">
+        ${escapeHtml(t(lang, 'tabTrip'))}
+      </button>
+    </nav>`;
+}
+
+function homeHtml(): string {
+  return `
+    <section class="home-welcome" aria-label="${escapeAttr(t(lang, 'tabHome'))}">
+      <div class="home-scene">
+        <img
+          class="home-bubble"
+          src="./welcome/thought-bubble.png"
+          alt="${escapeAttr(t(lang, 'homeBubbleAlt'))}"
+          width="720"
+          height="420"
+          decoding="async"
+        />
+        <img
+          class="home-portrait"
+          src="./welcome/rie.png"
+          alt="${escapeAttr(t(lang, 'homePortraitAlt'))}"
+          width="640"
+          height="712"
+          decoding="async"
+        />
+      </div>
+      <p class="home-greeting">${escapeHtml(t(lang, 'homeGreeting'))}</p>
+      <p class="home-caption">${escapeHtml(t(lang, 'homeCaption'))}</p>
+      <button type="button" class="btn primary wide home-open-trip" id="open-trip">
+        <span class="label">${escapeHtml(t(lang, 'homeOpenTrip'))}</span>
+      </button>
+    </section>`;
+}
+
 function render(): void {
   applyDocumentLang();
-  const stay = getStay(selectedId);
-  const autoId = pickActiveStayId();
-  const emergency = EMERGENCY[stay.country];
-  const bits = countdownBits(stay);
   const online = navigator.onLine;
-  const stayMode = selectedId === autoId ? t(lang, 'todaysStay') : t(lang, 'manual');
-  const tips = tipsFor(stay, lang);
-  const checklist = SAFETY_CHECKLIST_I18N[lang];
-  const hotelMaps = mapsUrl(stay.mapsQuery);
-  const isDubai = stay.id === 'dxb';
-  const wiki = wikiUrl(stay, lang);
 
-  app.innerHTML = `
+  const headerHtml = `
     <header class="header">
       <div class="brand">
         <strong>${escapeHtml(t(lang, 'appTitle'))}</strong>
@@ -295,6 +342,30 @@ function render(): void {
         </div>
       </div>
     </header>
+
+    ${appTabsHtml()}
+  `;
+
+  if (currentTab === 'home') {
+    app.innerHTML = `${headerHtml}${homeHtml()}
+    <p class="footer">${escapeHtml(t(lang, 'footer'))}</p>`;
+    bindHome();
+    return;
+  }
+
+  const stay = getStay(selectedId);
+  const autoId = pickActiveStayId();
+  const emergency = EMERGENCY[stay.country];
+  const bits = countdownBits(stay);
+  const stayMode = selectedId === autoId ? t(lang, 'todaysStay') : t(lang, 'manual');
+  const tips = tipsFor(stay, lang);
+  const checklist = SAFETY_CHECKLIST_I18N[lang];
+  const hotelMaps = mapsUrl(stay.mapsQuery);
+  const isDubai = stay.id === 'dxb';
+  const wiki = wikiUrl(stay, lang);
+
+  app.innerHTML = `
+    ${headerHtml}
 
     ${destLangChipsHtml(stay)}
 
@@ -483,7 +554,14 @@ function isLang(v: string | undefined): v is Lang {
   return v === 'ja' || v === 'en' || v === 'es' || v === 'ca' || v === 'ar';
 }
 
-function bind(stay: Stay): void {
+function switchAppTab(tab: AppTab): void {
+  if (tab === currentTab) return;
+  currentTab = tab;
+  setTab(tab);
+  render();
+}
+
+function bindChrome(): void {
   app.querySelectorAll<HTMLButtonElement>('[data-lang]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const next = btn.dataset.lang;
@@ -491,6 +569,25 @@ function bind(stay: Stay): void {
       switchLang(next);
     });
   });
+
+  app.querySelectorAll<HTMLButtonElement>('.app-tab[data-tab]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const tab = btn.dataset.tab;
+      if (tab !== 'home' && tab !== 'trip') return;
+      switchAppTab(tab);
+    });
+  });
+}
+
+function bindHome(): void {
+  bindChrome();
+  app.querySelector('#open-trip')?.addEventListener('click', () => {
+    switchAppTab('trip');
+  });
+}
+
+function bind(stay: Stay): void {
+  bindChrome();
 
   app.querySelectorAll<HTMLButtonElement>('.chip[data-stay]').forEach((btn) => {
     btn.addEventListener('click', () => {
