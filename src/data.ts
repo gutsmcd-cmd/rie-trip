@@ -1,6 +1,13 @@
 export type StayId = 'bcn' | 'mad' | 'dxb';
 export type CountryCode = 'ES' | 'AE';
 
+export interface LocalLang {
+  /** Native / local script label shown on chip */
+  name: string;
+  /** When true, shown as tourist-common (not primary local) */
+  touristCommon?: boolean;
+}
+
 export interface Stay {
   id: StayId;
   city: string;
@@ -14,6 +21,8 @@ export interface Stay {
   checkIn: string; // 'YYYY-MM-DD HH:mm'
   checkOut: string;
   mapsQuery: string;
+  /** Languages spoken / useful at this destination (not app UI langs) */
+  localLangs: LocalLang[];
   tips: string[];
   tipsJa: string[];
 }
@@ -38,6 +47,11 @@ export const STAYS: Stay[] = [
     checkIn: '2026-10-26 15:00',
     checkOut: '2026-10-29 12:00',
     mapsQuery: 'Hampton by Hilton Barcelona Fira Gran Via Plaza de Europa 33',
+    localLangs: [
+      { name: 'Español' },
+      { name: 'Català' },
+      { name: 'English', touristCommon: true },
+    ],
     tips: [
       'Watch tourist scams: fake petitions, friendship bracelets, “bird poop” distraction.',
       'Keep your bag zipped and in front of you.',
@@ -63,6 +77,10 @@ export const STAYS: Stay[] = [
     checkIn: '2026-10-29 15:00',
     checkOut: '2026-10-31 12:00',
     mapsQuery: 'Canopy by Hilton Madrid Castellana',
+    localLangs: [
+      { name: 'Español' },
+      { name: 'English', touristCommon: true },
+    ],
     tips: [
       'Area: Nuevos Ministerios / Castellana.',
       'Pickpockets on the metro — keep valuables front-facing.',
@@ -86,6 +104,7 @@ export const STAYS: Stay[] = [
     checkIn: '2026-11-01 15:00',
     checkOut: '2026-11-02 12:00',
     mapsQuery: 'DoubleTree by Hilton Dubai Port Saeed',
+    localLangs: [{ name: 'العربية' }, { name: 'English' }],
     tips: [
       'Near Deira City Centre.',
       'Modest dress in some areas (shoulders/knees covered when appropriate).',
@@ -187,9 +206,3 @@ export const SAFETY_CHECKLIST = [
   'Emergency number saved / one-tap below',
   'Hotel confirmation # in Settings (this phone only)',
 ];
-
-/** @deprecated Prefer MAT_MESSAGE_I18N from i18n */
-export const MAT_MESSAGE_TEMPLATE = `Hi Mat — I'm OK.
-Hotel: {{hotel}}
-City: {{city}}
-Location/plans: `;

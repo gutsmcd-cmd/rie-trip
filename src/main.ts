@@ -20,6 +20,9 @@ import {
   setNotes,
   getManualStayOverride,
   setManualStayOverride,
+  getCustomShortcuts,
+  addCustomShortcut,
+  removeCustomShortcut,
 } from './storage';
 import {
   type Lang,
@@ -28,7 +31,6 @@ import {
   localeFor,
   t,
   SAFETY_CHECKLIST_I18N,
-  MAT_MESSAGE_I18N,
   EMERGENCY_LABELS,
 } from './i18n';
 
@@ -38,6 +40,14 @@ let selectedId: StayId = getManualStayOverride() ?? pickActiveStayId();
 let lang: Lang = getLang();
 let torchStream: MediaStream | null = null;
 let torchOn = false;
+
+const QUICK_LINKS = {
+  translate: 'https://translate.google.com/',
+  currency: 'https://www.xe.com/currencyconverter/',
+  whatsapp: 'https://wa.me/',
+  uber: 'https://m.uber.com/',
+  careem: 'https://www.careem.com/',
+} as const;
 
 function applyDocumentLang(): void {
   document.documentElement.lang = lang === 'ja' ? 'ja' : 'en';
@@ -167,6 +177,77 @@ function emergencyAltLabel(): string {
   return EMERGENCY_LABELS[lang].AE_alt;
 }
 
+function normalizeHttpsUrl(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  try {
+    const withProto = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+    const u = new URL(withProto);
+    if (u.protocol !== 'https:' && u.protocol !== 'http:') return null;
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
+function destLangChipsHtml(stay: Stay): string {
+  const chips = stay.localLangs
+    .map((l) => {
+      const tourist = l.touristCommon
+        ? ` <span class="dest-lang-note">(${escapeHtml(t(lang, 'destLangTourist'))})</span>`
+        : '';
+      return `<span class="dest-lang-chip${l.touristCommon ? ' tourist' : ''}">${escapeHtml(l.name)}${tourist}</span>`;
+    })
+    .join('');
+  return `
+    <div class="dest-langs" aria-label="${escapeAttr(t(lang, 'destLangAria'))}">
+      <p class="dest-lang-tip">${escapeHtml(t(lang, 'destLangTip'))}</p>
+      <div class="dest-lang-chips">${chips}</div>
+    </div>`;
+}
+
+function customShortcutsHtml(): string {
+  const list = getCustomShortcuts();
+  const items =
+    list.length === 0
+      ? `<p class="note">${escapeHtml(t(lang, 'customShortcutEmpty'))}</p>`
+      : `<ul class="shortcut-list">
+          ${list
+            .map(
+              (s) => `
+            <li class="shortcut-item">
+              <a class="btn shortcut-open" href="${escapeAttr(s.url)}" target="_blank" rel="noopener">
+                <span class="label">${escapeHtml(s.name)}</span>
+                <span class="sub">${escapeHtml(t(lang, 'offlineLinkHint'))}</span>
+              </a>
+              <button type="button" class="btn danger shortcut-del" data-shortcut-id="${escapeAttr(s.id)}">
+                <span class="label">${escapeHtml(t(lang, 'customShortcutDelete'))}</span>
+              </button>
+            </li>`,
+            )
+            .join('')}
+        </ul>`;
+
+  return `
+    <div class="shortcuts-block">
+      <h3 class="subhead">${escapeHtml(t(lang, 'customShortcutsTitle'))}</h3>
+      ${items}
+      <div class="shortcut-form">
+        <div class="field">
+          <label for="shortcut-name">${escapeHtml(t(lang, 'customShortcutName'))}</label>
+          <input id="shortcut-name" type="text" maxlength="40" autocomplete="off" placeholder="${escapeAttr(t(lang, 'customShortcutName'))}" />
+        </div>
+        <div class="field">
+          <label for="shortcut-url">${escapeHtml(t(lang, 'customShortcutUrl'))}</label>
+          <input id="shortcut-url" type="url" inputmode="url" autocomplete="off" placeholder="${escapeAttr(t(lang, 'customShortcutUrl'))}" />
+        </div>
+        <button type="button" class="btn primary wide" id="shortcut-add">
+          <span class="label">${escapeHtml(t(lang, 'customShortcutAdd'))}</span>
+        </button>
+      </div>
+    </div>`;
+}
+
 function render(): void {
   applyDocumentLang();
   const stay = getStay(selectedId);
@@ -177,6 +258,8 @@ function render(): void {
   const stayMode = selectedId === autoId ? t(lang, 'todaysStay') : t(lang, 'manual');
   const tips = tipList(stay);
   const checklist = SAFETY_CHECKLIST_I18N[lang];
+  const hotelMaps = mapsUrl(stay.mapsQuery);
+  const isDubai = stay.id === 'dxb';
 
   app.innerHTML = `
     <header class="header">
@@ -194,6 +277,8 @@ function render(): void {
         </div>
       </div>
     </header>
+
+    ${destLangChipsHtml(stay)}
 
     <nav class="switcher" aria-label="${escapeAttr(t(lang, 'staySwitcher'))}">
       ${STAYS.map(
@@ -238,7 +323,7 @@ function render(): void {
         <a class="btn primary" href="${telHref(stay.phone)}">
           <span class="label">${escapeHtml(t(lang, 'callHotel'))}</span>
         </a>
-        <a class="btn" href="${mapsUrl(stay.mapsQuery)}" target="_blank" rel="noopener" id="maps-link">
+        <a class="btn" href="${hotelMaps}" target="_blank" rel="noopener" id="maps-link">
           <span class="label">${escapeHtml(t(lang, 'openMaps'))}</span>
         </a>
         <a class="btn" href="${geoUrl(stay.mapsQuery)}">
@@ -247,6 +332,10 @@ function render(): void {
         <button type="button" class="btn" id="copy-phone">
           <span class="label">${escapeHtml(t(lang, 'copyPhone'))}</span>
         </button>
+        <a class="btn wide accent" href="${hotelMaps}" target="_blank" rel="noopener" id="offline-map-prep">
+          <span class="label">${escapeHtml(t(lang, 'prepareOfflineMap'))}</span>
+          <span class="sub">${escapeHtml(t(lang, 'offlineLinkHint'))}</span>
+        </a>
       </div>
       <div class="field" style="margin-top:14px">
         <label for="confirm-input">${escapeHtml(t(lang, 'confirmLabel'))}</label>
@@ -259,6 +348,23 @@ function render(): void {
           placeholder="${escapeAttr(t(lang, 'confirmPlaceholder'))}"
           value="${escapeAttr(getConfirmation(stay.id))}"
         />
+        <p class="persist-hint">${escapeHtml(t(lang, 'persistHint'))}</p>
+      </div>
+    </section>
+
+    <section class="card offline-maps-card">
+      <h2>${escapeHtml(t(lang, 'sectionOfflineMaps'))}</h2>
+      <p class="note offline-maps-intro">${escapeHtml(t(lang, 'offlineMapsIntro'))}</p>
+      <ol class="offline-steps">
+        <li>${escapeHtml(t(lang, 'offlineMapsStep1'))}</li>
+        <li>${escapeHtml(t(lang, 'offlineMapsStep2'))}</li>
+        <li>${escapeHtml(t(lang, 'offlineMapsStep3'))}</li>
+      </ol>
+      <p class="note">${escapeHtml(t(lang, 'offlineMapsStepAlt'))}</p>
+      <div class="actions" style="margin-top:12px">
+        <a class="btn primary wide" href="${hotelMaps}" target="_blank" rel="noopener">
+          <span class="label">${escapeHtml(t(lang, 'prepareOfflineMap'))}</span>
+        </a>
       </div>
     </section>
 
@@ -292,16 +398,46 @@ function render(): void {
     <section class="card">
       <h2>${escapeHtml(t(lang, 'sectionTools'))}</h2>
       <div class="actions">
-        <button type="button" class="btn ${torchOn ? 'on' : ''}" id="torch-btn">
+        <button type="button" class="btn ${torchOn ? 'on' : ''} wide" id="torch-btn">
           <span class="label">${escapeHtml(t(lang, torchOn ? 'lightOn' : 'flashlight'))}</span>
         </button>
-        <button type="button" class="btn" id="copy-msg">
-          <span class="label">${escapeHtml(t(lang, 'copyMatMsg'))}</span>
-        </button>
       </div>
+
+      <h3 class="subhead">${escapeHtml(t(lang, 'quickLinksLabel'))}</h3>
+      <div class="actions">
+        <a class="btn" href="${QUICK_LINKS.translate}" target="_blank" rel="noopener">
+          <span class="label">${escapeHtml(t(lang, 'linkTranslate'))}</span>
+          <span class="sub">${escapeHtml(t(lang, 'offlineLinkHint'))}</span>
+        </a>
+        <a class="btn" href="${QUICK_LINKS.currency}" target="_blank" rel="noopener">
+          <span class="label">${escapeHtml(t(lang, 'linkCurrency'))}</span>
+          <span class="sub">${escapeHtml(t(lang, 'offlineLinkHint'))}</span>
+        </a>
+        <a class="btn" href="${QUICK_LINKS.whatsapp}" target="_blank" rel="noopener">
+          <span class="label">${escapeHtml(t(lang, 'linkWhatsApp'))}</span>
+          <span class="sub">${escapeHtml(t(lang, 'offlineLinkHint'))}</span>
+        </a>
+        ${
+          isDubai
+            ? `<a class="btn" href="${QUICK_LINKS.uber}" target="_blank" rel="noopener">
+                <span class="label">${escapeHtml(t(lang, 'linkUber'))}</span>
+                <span class="sub">${escapeHtml(t(lang, 'offlineLinkHint'))}</span>
+              </a>
+              <a class="btn" href="${QUICK_LINKS.careem}" target="_blank" rel="noopener">
+                <span class="label">${escapeHtml(t(lang, 'linkCareem'))}</span>
+                <span class="sub">${escapeHtml(t(lang, 'offlineLinkHint'))}</span>
+              </a>`
+            : ''
+        }
+      </div>
+      ${isDubai ? `<p class="note" style="margin-top:8px">${escapeHtml(t(lang, 'rideAppsNote'))}</p>` : ''}
+
+      ${customShortcutsHtml()}
+
       <div class="field" style="margin-top:14px">
         <label for="notes">${escapeHtml(t(lang, 'notesLabel'))}</label>
         <textarea id="notes" placeholder="${escapeAttr(t(lang, 'notesPlaceholder'))}">${escapeHtml(getNotes())}</textarea>
+        <p class="persist-hint">${escapeHtml(t(lang, 'persistHint'))}</p>
       </div>
     </section>
 
@@ -372,15 +508,32 @@ function bind(stay: Stay): void {
     notesTimer = window.setTimeout(() => setNotes(notes.value), 250);
   });
 
-  app.querySelector('#copy-msg')?.addEventListener('click', () => {
-    const msg = MAT_MESSAGE_I18N[lang]
-      .replace('{{hotel}}', stay.hotel)
-      .replace('{{city}}', stay.city);
-    void copyText(msg, t(lang, 'toastMessageCopied'));
-  });
-
   app.querySelector('#torch-btn')?.addEventListener('click', () => {
     void toggleTorch();
+  });
+
+  app.querySelector('#shortcut-add')?.addEventListener('click', () => {
+    const nameEl = app.querySelector<HTMLInputElement>('#shortcut-name');
+    const urlEl = app.querySelector<HTMLInputElement>('#shortcut-url');
+    const name = nameEl?.value.trim() ?? '';
+    const url = normalizeHttpsUrl(urlEl?.value ?? '');
+    if (!name || !url) {
+      toast(t(lang, 'toastShortcutInvalid'));
+      return;
+    }
+    addCustomShortcut(name, url);
+    toast(t(lang, 'toastShortcutAdded'));
+    render();
+  });
+
+  app.querySelectorAll<HTMLButtonElement>('.shortcut-del[data-shortcut-id]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.shortcutId;
+      if (!id) return;
+      removeCustomShortcut(id);
+      toast(t(lang, 'toastShortcutDeleted'));
+      render();
+    });
   });
 }
 
