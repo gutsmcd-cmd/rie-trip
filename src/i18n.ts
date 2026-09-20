@@ -1,10 +1,12 @@
-export type Lang = 'ja' | 'en';
+export type Lang = 'ja' | 'en' | 'es' | 'ca' | 'ar';
+
+export const ALL_LANGS: Lang[] = ['ja', 'en', 'es', 'ca', 'ar'];
 
 const LANG_KEY = 'rie-trip-lang';
 
 export function getLang(): Lang {
   const v = localStorage.getItem(LANG_KEY);
-  if (v === 'en' || v === 'ja') return v;
+  if (v === 'en' || v === 'ja' || v === 'es' || v === 'ca' || v === 'ar') return v;
   return 'ja';
 }
 
@@ -13,7 +15,33 @@ export function setLang(lang: Lang): void {
 }
 
 export function localeFor(lang: Lang): string {
-  return lang === 'ja' ? 'ja-JP' : 'en-GB';
+  switch (lang) {
+    case 'ja':
+      return 'ja-JP';
+    case 'es':
+      return 'es-ES';
+    case 'ca':
+      return 'ca-ES';
+    case 'ar':
+      return 'ar-AE';
+    default:
+      return 'en-GB';
+  }
+}
+
+export function langLabel(code: Lang): string {
+  switch (code) {
+    case 'ja':
+      return '日本語';
+    case 'en':
+      return 'English';
+    case 'es':
+      return 'Español';
+    case 'ca':
+      return 'Català';
+    case 'ar':
+      return 'العربية';
+  }
 }
 
 type Dict = Record<string, string>;
@@ -39,7 +67,7 @@ const en: Dict = {
   openMaps: 'Google Maps',
   geoMaps: 'Phone maps (geo)',
   prepareOfflineMap: 'Prepare offline map',
-  copyPhone: 'Copy phone',
+  copyPhone: 'Copy number',
   confirmLabel: 'Confirmation # · on this phone only',
   confirmPlaceholder: 'Add confirmation #',
   persistHint:
@@ -50,6 +78,12 @@ const en: Dict = {
     'Maps need signal. Hotel text, tips, phones & this checklist work fully offline.',
   flashlight: 'Flashlight',
   lightOn: 'Light ON',
+  calculator: 'Calculator',
+  calendar: 'Calendar',
+  calendarTitle: 'Trip calendar',
+  calendarClose: 'Close',
+  calcClose: 'Close',
+  calcClear: 'C',
   notesLabel: 'Personal notes (saved on device)',
   notesPlaceholder: 'Gate numbers, meeting spots, reminders…',
   footer: 'Free · no ads · no login · confirmation #s stay on this device',
@@ -79,21 +113,25 @@ const en: Dict = {
   checkoutAt: 'Check-out {date}',
   langJa: '日本語',
   langEn: 'English',
+  langEs: 'Español',
+  langCa: 'Català',
+  langAr: 'العربية',
   langToggle: 'App language',
   destLangTip: 'Useful local languages:',
-  destLangAria: 'Languages spoken at this destination',
+  destLangAria: 'Switch app language to a local language',
   destLangTourist: 'tourist-common',
   offlineMapsIntro:
     'This app cannot embed offline map tiles. Download the hotel area in Google Maps while you have Wi‑Fi.',
-  offlineMapsStep1: '1. Open Google Maps (button below or the app on your phone).',
-  offlineMapsStep2: '2. Search the hotel, open the place, then tap the profile picture → Offline maps.',
-  offlineMapsStep3: '3. Download the area around your hotel while online.',
+  offlineMapsStep1: 'Open Google Maps (button below or the app on your phone).',
+  offlineMapsStep2:
+    'Search the hotel, open the place, then tap the profile picture → Offline maps.',
+  offlineMapsStep3: 'Download the area around your hotel while online.',
   offlineMapsStepAlt:
     'Or: Google Maps → your profile → Offline maps → Select your own map → download.',
   quickLinksLabel: 'Useful links (need internet)',
   linkTranslate: 'Google Translate',
   linkCurrency: 'Currency (XE)',
-  linkWhatsApp: 'WhatsApp',
+  linkWikipedia: 'Wikipedia',
   linkUber: 'Uber',
   linkCareem: 'Careem',
   rideAppsNote: 'Ride apps: Uber / Careem (Dubai) — install before you travel.',
@@ -139,6 +177,12 @@ const ja: Dict = {
     '地図は電波が必要です。ホテル情報・ヒント・電話・チェックリストはオフラインでも使えます。',
   flashlight: 'ライト',
   lightOn: 'ライト ON',
+  calculator: '電卓',
+  calendar: 'カレンダー',
+  calendarTitle: '旅程カレンダー',
+  calendarClose: '閉じる',
+  calcClose: '閉じる',
+  calcClear: 'C',
   notesLabel: 'メモ（この端末に保存）',
   notesPlaceholder: 'ゲート番号、待ち合わせ場所、リマインダー…',
   footer: '無料 · 広告なし · ログイン不要 · 確認番号はこの端末のみ',
@@ -168,21 +212,24 @@ const ja: Dict = {
   checkoutAt: 'チェックアウト {date}',
   langJa: '日本語',
   langEn: 'English',
+  langEs: 'Español',
+  langCa: 'Català',
+  langAr: 'العربية',
   langToggle: 'アプリの言語',
   destLangTip: '現地で役立つ言語：',
-  destLangAria: 'この滞在先で話されている言語',
+  destLangAria: 'アプリの表示言語を切り替える',
   destLangTourist: '観光で通じやすい',
   offlineMapsIntro:
     'このアプリにオフライン地図タイルは埋め込めません。Wi‑Fiがあるうちに Google Maps でホテル周辺をダウンロードしてください。',
-  offlineMapsStep1: '1. Google Maps を開く（下のボタン、またはスマホのアプリ）。',
-  offlineMapsStep2: '2. ホテルを検索して場所を開き、プロフィール写真 → オフラインマップ。',
-  offlineMapsStep3: '3. オンラインのあいだにホテル周辺エリアをダウンロード。',
+  offlineMapsStep1: 'Google Maps を開く（下のボタン、またはスマホのアプリ）。',
+  offlineMapsStep2: 'ホテルを検索して場所を開き、プロフィール写真 → オフラインマップ。',
+  offlineMapsStep3: 'オンラインのあいだにホテル周辺エリアをダウンロード。',
   offlineMapsStepAlt:
     'または：Google Maps → プロフィール → オフラインマップ → 自分で地図を選択 → ダウンロード。',
   quickLinksLabel: '便利リンク（ネットが必要）',
   linkTranslate: 'Google 翻訳',
   linkCurrency: '為替（XE）',
-  linkWhatsApp: 'WhatsApp',
+  linkWikipedia: 'Wikipedia',
   linkUber: 'Uber',
   linkCareem: 'Careem',
   rideAppsNote: '配車アプリ：Uber / Careem（ドバイ）— 出発前に入れておくと安心。',
@@ -196,7 +243,303 @@ const ja: Dict = {
   offlineLinkHint: 'オンライン時に開きます',
 };
 
-const dictionaries: Record<Lang, Dict> = { en, ja };
+const es: Dict = {
+  appTitle: 'Rie Trip',
+  appSubtitle: 'Barcelona · Madrid · Dubái',
+  online: 'En línea',
+  offlineReady: 'Listo sin conexión',
+  staySwitcher: 'Cambiar estancia',
+  todaysStay: 'Estancia de hoy',
+  manual: 'Manual',
+  sectionStay: 'Estancia',
+  sectionTips: 'Consejos',
+  sectionSafety: 'Seguridad',
+  sectionTools: 'Herramientas',
+  sectionOfflineMaps: 'Mapas sin conexión',
+  tapCopyAddress: 'Toca para copiar la dirección',
+  checkIn: 'Entrada',
+  checkOut: 'Salida',
+  local: '(hora local)',
+  callHotel: 'Llamar al hotel',
+  openMaps: 'Google Maps',
+  geoMaps: 'Mapas del móvil',
+  prepareOfflineMap: 'Preparar mapa offline',
+  copyPhone: 'Copiar número',
+  confirmLabel: 'N.º de confirmación · solo en este móvil',
+  confirmPlaceholder: 'Añadir n.º de confirmación',
+  persistHint:
+    'Guardado en este móvil. Se mantiene al cerrar o reiniciar. Solo se borra si eliminas los datos del sitio.',
+  emergency: 'Emergencia',
+  emergencyAlt: 'Emergencia {n}',
+  safetyNote:
+    'Los mapas necesitan señal. Hotel, consejos, teléfonos y esta lista funcionan sin conexión.',
+  flashlight: 'Linterna',
+  lightOn: 'Luz ON',
+  calculator: 'Calculadora',
+  calendar: 'Calendario',
+  calendarTitle: 'Calendario del viaje',
+  calendarClose: 'Cerrar',
+  calcClose: 'Cerrar',
+  calcClear: 'C',
+  notesLabel: 'Notas personales (en el dispositivo)',
+  notesPlaceholder: 'Puertas, puntos de encuentro, recordatorios…',
+  footer: 'Gratis · sin anuncios · sin login · los n.º quedan en este dispositivo',
+  toastAddressCopied: 'Dirección copiada',
+  toastPhoneCopied: 'Teléfono copiado',
+  toastSaved: 'Guardado en este móvil',
+  toastCopyFailed: 'No se pudo copiar',
+  toastLightOff: 'Luz apagada',
+  toastFlashlightOn: 'Linterna encendida',
+  toastBrightScreen: 'Pantalla brillante',
+  toastShortcutAdded: 'Acceso guardado',
+  toastShortcutDeleted: 'Acceso eliminado',
+  toastShortcutInvalid: 'Introduce un nombre y una URL https válida',
+  torchTap: 'Toca para luz',
+  torchClose: 'Toca otra vez para cerrar',
+  checkInToday: 'Entrada hoy',
+  checkInInDays: 'Entrada en {n} día',
+  checkInInDaysPlural: 'Entrada en {n} días',
+  nightsLabel: '{n} noche',
+  nightsLabelPlural: '{n} noches',
+  checkOutSoon: 'Salida pronto',
+  hoursUntilCheckout: '{n} h hasta la salida',
+  lastNight: 'Última noche · salida mañana',
+  nightsLeft: 'Quedan {n} noches',
+  stayComplete: 'Estancia terminada',
+  checkedOut: 'Salida {date}',
+  checkoutAt: 'Salida {date}',
+  langJa: '日本語',
+  langEn: 'English',
+  langEs: 'Español',
+  langCa: 'Català',
+  langAr: 'العربية',
+  langToggle: 'Idioma de la app',
+  destLangTip: 'Idiomas útiles aquí:',
+  destLangAria: 'Cambiar el idioma de la app',
+  destLangTourist: 'común para turistas',
+  offlineMapsIntro:
+    'Esta app no incluye mapas offline. Descarga la zona del hotel en Google Maps con Wi‑Fi.',
+  offlineMapsStep1: 'Abre Google Maps (botón de abajo o la app del móvil).',
+  offlineMapsStep2:
+    'Busca el hotel, ábrelo y toca la foto de perfil → Mapas sin conexión.',
+  offlineMapsStep3: 'Descarga la zona del hotel mientras tengas conexión.',
+  offlineMapsStepAlt:
+    'O: Google Maps → tu perfil → Mapas sin conexión → Seleccionar tu propio mapa → descargar.',
+  quickLinksLabel: 'Enlaces útiles (necesitan internet)',
+  linkTranslate: 'Google Translate',
+  linkCurrency: 'Divisas (XE)',
+  linkWikipedia: 'Wikipedia',
+  linkUber: 'Uber',
+  linkCareem: 'Careem',
+  rideAppsNote: 'Apps de viaje: Uber / Careem (Dubái) — instálalas antes del viaje.',
+  customShortcutsTitle: 'Accesos personalizados',
+  customShortcutName: 'Nombre',
+  customShortcutUrl: 'https://…',
+  customShortcutAdd: 'Añadir acceso',
+  customShortcutOpen: 'Abrir',
+  customShortcutDelete: 'Eliminar',
+  customShortcutEmpty: 'Aún no hay accesos.',
+  offlineLinkHint: 'Se abre con conexión',
+};
+
+const ca: Dict = {
+  appTitle: 'Rie Trip',
+  appSubtitle: 'Barcelona · Madrid · Dubai',
+  online: 'En línia',
+  offlineReady: 'Llest sense connexió',
+  staySwitcher: 'Canviar estada',
+  todaysStay: "Estada d'avui",
+  manual: 'Manual',
+  sectionStay: 'Estada',
+  sectionTips: 'Consells',
+  sectionSafety: 'Seguretat',
+  sectionTools: 'Eines',
+  sectionOfflineMaps: 'Mapes fora de línia',
+  tapCopyAddress: "Toca per copiar l'adreça",
+  checkIn: "Entrada",
+  checkOut: 'Sortida',
+  local: '(hora local)',
+  callHotel: "Trucar a l'hotel",
+  openMaps: 'Google Maps',
+  geoMaps: 'Mapes del mòbil',
+  prepareOfflineMap: 'Preparar mapa fora de línia',
+  copyPhone: 'Copiar número',
+  confirmLabel: 'Núm. de confirmació · només en aquest mòbil',
+  confirmPlaceholder: 'Afegeix el núm. de confirmació',
+  persistHint:
+    "Desat en aquest mòbil. Es manté en tancar o reiniciar. Només s'esborra si elimines les dades del lloc.",
+  emergency: 'Emergència',
+  emergencyAlt: 'Emergència {n}',
+  safetyNote:
+    "Els mapes necessiten cobertura. Hotel, consells, telèfons i aquesta llista funcionen sense connexió.",
+  flashlight: 'Llanterna',
+  lightOn: 'Llum ON',
+  calculator: 'Calculadora',
+  calendar: 'Calendari',
+  calendarTitle: 'Calendari del viatge',
+  calendarClose: 'Tancar',
+  calcClose: 'Tancar',
+  calcClear: 'C',
+  notesLabel: 'Notes personals (al dispositiu)',
+  notesPlaceholder: 'Portes, punts de trobada, recordatoris…',
+  footer: 'Gratuït · sense anuncis · sense login · els núm. queden en aquest dispositiu',
+  toastAddressCopied: 'Adreça copiada',
+  toastPhoneCopied: 'Telèfon copiat',
+  toastSaved: 'Desat en aquest mòbil',
+  toastCopyFailed: "No s'ha pogut copiar",
+  toastLightOff: 'Llum apagada',
+  toastFlashlightOn: 'Llanterna encesa',
+  toastBrightScreen: 'Pantalla brillant',
+  toastShortcutAdded: 'Drecera desada',
+  toastShortcutDeleted: 'Drecera eliminada',
+  toastShortcutInvalid: 'Introdueix un nom i una URL https vàlida',
+  torchTap: 'Toca per a llum',
+  torchClose: 'Toca una altra vegada per tancar',
+  checkInToday: 'Entrada avui',
+  checkInInDays: "Entrada d'aquí a {n} dia",
+  checkInInDaysPlural: "Entrada d'aquí a {n} dies",
+  nightsLabel: '{n} nit',
+  nightsLabelPlural: '{n} nits',
+  checkOutSoon: 'Sortida aviat',
+  hoursUntilCheckout: '{n} h fins a la sortida',
+  lastNight: 'Última nit · sortida demà',
+  nightsLeft: 'Queden {n} nits',
+  stayComplete: 'Estada acabada',
+  checkedOut: 'Sortida {date}',
+  checkoutAt: 'Sortida {date}',
+  langJa: '日本語',
+  langEn: 'English',
+  langEs: 'Español',
+  langCa: 'Català',
+  langAr: 'العربية',
+  langToggle: "Idioma de l'app",
+  destLangTip: 'Idiomes útils aquí:',
+  destLangAria: "Canviar l'idioma de l'app",
+  destLangTourist: 'comú per a turistes',
+  offlineMapsIntro:
+    "Aquesta app no inclou mapes fora de línia. Descarrega la zona de l'hotel a Google Maps amb Wi‑Fi.",
+  offlineMapsStep1: 'Obre Google Maps (botó de sota o l’app del mòbil).',
+  offlineMapsStep2:
+    "Cerca l'hotel, obre’l i toca la foto de perfil → Mapes fora de línia.",
+  offlineMapsStep3: "Descarrega la zona de l'hotel mentre tinguis connexió.",
+  offlineMapsStepAlt:
+    'O: Google Maps → el teu perfil → Mapes fora de línia → Selecciona el teu propi mapa → descarrega.',
+  quickLinksLabel: 'Enllaços útils (cal internet)',
+  linkTranslate: 'Google Translate',
+  linkCurrency: 'Divises (XE)',
+  linkWikipedia: 'Wikipedia',
+  linkUber: 'Uber',
+  linkCareem: 'Careem',
+  rideAppsNote: 'Apps de viatge: Uber / Careem (Dubai) — instal·la-les abans del viatge.',
+  customShortcutsTitle: 'Dreceres personalitzades',
+  customShortcutName: 'Nom',
+  customShortcutUrl: 'https://…',
+  customShortcutAdd: 'Afegir drecera',
+  customShortcutOpen: 'Obrir',
+  customShortcutDelete: 'Eliminar',
+  customShortcutEmpty: 'Encara no hi ha dreceres.',
+  offlineLinkHint: "S'obre amb connexió",
+};
+
+const ar: Dict = {
+  appTitle: 'Rie Trip',
+  appSubtitle: 'برشلونة · مدريد · دبي',
+  online: 'متصل',
+  offlineReady: 'جاهز دون اتصال',
+  staySwitcher: 'تبديل الإقامة',
+  todaysStay: 'إقامة اليوم',
+  manual: 'يدوي',
+  sectionStay: 'الإقامة',
+  sectionTips: 'نصائح',
+  sectionSafety: 'الأمان',
+  sectionTools: 'أدوات سريعة',
+  sectionOfflineMaps: 'إعداد الخرائط دون اتصال',
+  tapCopyAddress: 'اضغط لنسخ العنوان',
+  checkIn: 'تسجيل الوصول',
+  checkOut: 'تسجيل المغادرة',
+  local: '(بالتوقيت المحلي)',
+  callHotel: 'اتصل بالفندق',
+  openMaps: 'خرائط Google',
+  geoMaps: 'خرائط الهاتف',
+  prepareOfflineMap: 'جهّز خريطة دون اتصال',
+  copyPhone: 'نسخ الرقم',
+  confirmLabel: 'رقم التأكيد · على هذا الهاتف فقط',
+  confirmPlaceholder: 'أضف رقم التأكيد',
+  persistHint:
+    'يُحفظ على هذا الهاتف. يبقى بعد الإغلاق أو إعادة التشغيل. يُحذف فقط إذا مسحت بيانات الموقع.',
+  emergency: 'طوارئ',
+  emergencyAlt: 'طوارئ {n}',
+  safetyNote:
+    'الخرائط تحتاج إشارة. بيانات الفندق والنصائح والهواتف وهذه القائمة تعمل دون اتصال.',
+  flashlight: 'المصباح',
+  lightOn: 'المصباح قيد التشغيل',
+  calculator: 'آلة حاسبة',
+  calendar: 'التقويم',
+  calendarTitle: 'تقويم الرحلة',
+  calendarClose: 'إغلاق',
+  calcClose: 'إغلاق',
+  calcClear: 'C',
+  notesLabel: 'ملاحظات شخصية (على الجهاز)',
+  notesPlaceholder: 'أرقام البوابات، نقاط اللقاء، تذكيرات…',
+  footer: 'مجاني · بلا إعلانات · بلا تسجيل · أرقام التأكيد على هذا الجهاز فقط',
+  toastAddressCopied: 'تم نسخ العنوان',
+  toastPhoneCopied: 'تم نسخ الهاتف',
+  toastSaved: 'تم الحفظ على هذا الهاتف',
+  toastCopyFailed: 'فشل النسخ',
+  toastLightOff: 'تم إطفاء المصباح',
+  toastFlashlightOn: 'المصباح مضاء',
+  toastBrightScreen: 'شاشة ساطعة',
+  toastShortcutAdded: 'تم حفظ الاختصار',
+  toastShortcutDeleted: 'تم حذف الاختصار',
+  toastShortcutInvalid: 'أدخل اسماً ورابط https صالحاً',
+  torchTap: 'اضغط للإضاءة',
+  torchClose: 'اضغط مرة أخرى للإغلاق',
+  checkInToday: 'تسجيل الوصول اليوم',
+  checkInInDays: 'تسجيل الوصول بعد {n} يوم',
+  checkInInDaysPlural: 'تسجيل الوصول بعد {n} أيام',
+  nightsLabel: 'ليلة {n}',
+  nightsLabelPlural: '{n} ليالٍ',
+  checkOutSoon: 'المغادرة قريباً',
+  hoursUntilCheckout: '{n} س حتى المغادرة',
+  lastNight: 'الليلة الأخيرة · المغادرة غداً',
+  nightsLeft: 'متبقي {n} ليالٍ',
+  stayComplete: 'انتهت الإقامة',
+  checkedOut: 'تمت المغادرة {date}',
+  checkoutAt: 'المغادرة {date}',
+  langJa: '日本語',
+  langEn: 'English',
+  langEs: 'Español',
+  langCa: 'Català',
+  langAr: 'العربية',
+  langToggle: 'لغة التطبيق',
+  destLangTip: 'لغات مفيدة هنا:',
+  destLangAria: 'تبديل لغة التطبيق',
+  destLangTourist: 'شائعة للسياح',
+  offlineMapsIntro:
+    'لا يمكن لهذا التطبيق تضمين خرائط دون اتصال. نزّل منطقة الفندق من خرائط Google أثناء توفر الواي فاي.',
+  offlineMapsStep1: 'افتح خرائط Google (الزر أدناه أو التطبيق على هاتفك).',
+  offlineMapsStep2: 'ابحث عن الفندق وافتحه، ثم صورة الملف الشخصي → الخرائط دون اتصال.',
+  offlineMapsStep3: 'نزّل المنطقة حول فندقك وأنت متصل.',
+  offlineMapsStepAlt:
+    'أو: خرائط Google → ملفك → الخرائط دون اتصال → اختر خريطتك → نزّل.',
+  quickLinksLabel: 'روابط مفيدة (تحتاج إنترنت)',
+  linkTranslate: 'ترجمة Google',
+  linkCurrency: 'العملات (XE)',
+  linkWikipedia: 'ويكيبيديا',
+  linkUber: 'Uber',
+  linkCareem: 'Careem',
+  rideAppsNote: 'تطبيقات التنقل: Uber / Careem (دبي) — ثبّتها قبل السفر.',
+  customShortcutsTitle: 'اختصارات مخصصة',
+  customShortcutName: 'الاسم',
+  customShortcutUrl: 'https://…',
+  customShortcutAdd: 'إضافة اختصار',
+  customShortcutOpen: 'فتح',
+  customShortcutDelete: 'حذف',
+  customShortcutEmpty: 'لا توجد اختصارات بعد.',
+  offlineLinkHint: 'يفتح عند الاتصال',
+};
+
+const dictionaries: Record<Lang, Dict> = { en, ja, es, ca, ar };
 
 export function t(lang: Lang, key: string, vars?: Record<string, string | number>): string {
   const raw = dictionaries[lang][key] ?? dictionaries.en[key] ?? key;
@@ -224,6 +567,30 @@ export const SAFETY_CHECKLIST_I18N: Record<Lang, string[]> = {
     '緊急番号を保存／下のボタンでワンタップ',
     '予約確認番号はこの端末の入力欄に（端末のみ）',
   ],
+  es: [
+    'Bolso cerrado y delante del cuerpo',
+    'Móvil / cartera no en el bolsillo trasero',
+    'Saber el nombre y la dirección del hotel',
+    'Captura de mapas cuando haya señal',
+    'Número de emergencia guardado / un toque abajo',
+    'N.º de confirmación del hotel en este móvil',
+  ],
+  ca: [
+    'Bossa tancada i davant del cos',
+    'Mòbil / cartera no a la butxaca del darrere',
+    "Saber el nom i l'adreça de l'hotel",
+    'Captura de mapes quan hi hagi cobertura',
+    "Número d'emergència desat / un toc a sota",
+    "Núm. de confirmació de l'hotel en aquest mòbil",
+  ],
+  ar: [
+    'الحقيبة مغلقة وأمامك',
+    'الهاتف / المحفظة ليسا في الجيب الخلفي',
+    'اعرف اسم الفندق وعنوانه',
+    'التقط لقطة للخرائط عند توفر الإشارة',
+    'رقم الطوارئ محفوظ / ضغطة واحدة أدناه',
+    'رقم تأكيد الفندق على هذا الهاتف فقط',
+  ],
 };
 
 export const EMERGENCY_LABELS: Record<
@@ -239,5 +606,20 @@ export const EMERGENCY_LABELS: Record<
     ES: '緊急（スペイン）112',
     AE: '警察 UAE 999',
     AE_alt: '緊急 112',
+  },
+  es: {
+    ES: 'Emergencia (España) 112',
+    AE: 'Policía EAU 999',
+    AE_alt: 'Emergencia 112',
+  },
+  ca: {
+    ES: 'Emergència (Espanya) 112',
+    AE: 'Policia EAU 999',
+    AE_alt: 'Emergència 112',
+  },
+  ar: {
+    ES: 'طوارئ (إسبانيا) 112',
+    AE: 'شرطة الإمارات 999',
+    AE_alt: 'طوارئ 112',
   },
 };

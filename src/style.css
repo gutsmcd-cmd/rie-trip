@@ -660,3 +660,267 @@ textarea {
 .shortcut-form .field {
   margin: 0;
 }
+
+/* Multi-lang header toggle (wraps on narrow screens) */
+.lang-toggle {
+  flex-wrap: wrap;
+  max-width: 220px;
+  justify-content: flex-end;
+}
+
+.lang-btn {
+  font-size: 0.68rem;
+  padding: 5px 8px;
+}
+
+/* Dest language chips = UI lang switcher (segmented) */
+.dest-lang-chips {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--card-border);
+}
+
+button.dest-lang-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  line-height: 1.2;
+  cursor: pointer;
+  min-height: 32px;
+  transition: background 0.15s, color 0.15s;
+}
+
+button.dest-lang-chip.tourist {
+  font-weight: 500;
+}
+
+button.dest-lang-chip.active {
+  background: rgba(232, 213, 181, 0.22);
+  color: var(--sand);
+}
+
+button.dest-lang-chip:active {
+  transform: scale(0.98);
+}
+
+/* Modals */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: rgba(5, 12, 24, 0.72);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 12px;
+  padding-bottom: calc(12px + var(--safe-b));
+}
+
+.modal-sheet {
+  width: 100%;
+  max-width: var(--max);
+  max-height: min(88dvh, 640px);
+  overflow: auto;
+  background: var(--navy-2);
+  border: 1px solid var(--card-border);
+  border-radius: 18px 18px 14px 14px;
+  padding: 16px;
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.45);
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.modal-head h2 {
+  font-size: 1.05rem;
+  color: var(--sand);
+  margin: 0;
+}
+
+.modal-close {
+  border: 1px solid var(--card-border);
+  background: rgba(0, 0, 0, 0.25);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 36px;
+}
+
+/* Calendar agenda */
+.agenda-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.agenda-item {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--card-border);
+}
+
+.agenda-flag {
+  font-size: 1.4rem;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.agenda-city {
+  font-weight: 700;
+  color: var(--sand);
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.agenda-hotel {
+  font-size: 0.8rem;
+  color: var(--text);
+  line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.agenda-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.agenda-nights {
+  color: var(--gold);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Calculator */
+.calc-sheet {
+  max-height: none;
+}
+
+.calc-display {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px 14px;
+  font-size: 1.65rem;
+  font-weight: 600;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  min-height: 56px;
+  margin-bottom: 12px;
+  word-break: break-all;
+  color: var(--sand);
+}
+
+.calc-pad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calc-key {
+  min-height: 52px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: var(--navy-3);
+  color: var(--text);
+  font-size: 1.15rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.calc-key:active {
+  transform: scale(0.97);
+}
+
+.calc-key.op {
+  background: rgba(201, 166, 107, 0.18);
+  color: var(--sand);
+}
+
+.calc-key.eq {
+  background: linear-gradient(180deg, #d4bc8e, var(--gold));
+  color: var(--navy);
+  border-color: transparent;
+}
+
+.calc-key.zero {
+  grid-column: span 2;
+}
+
+/* Arabic / RTL font support */
+html[lang='ar'] body,
+html[dir='rtl'] {
+  font-family:
+    'Segoe UI',
+    system-ui,
+    -apple-system,
+    'Noto Sans Arabic',
+    'Tahoma',
+    'Hiragino Sans',
+    'Noto Sans JP',
+    sans-serif;
+}
+
+html[dir='rtl'] .header-right {
+  align-items: flex-start;
+}
+
+html[dir='rtl'] .lang-toggle {
+  justify-content: flex-start;
+}
+
+html[dir='rtl'] .tips li {
+  padding: 10px 28px 10px 12px;
+}
+
+html[dir='rtl'] .tips li::before {
+  left: auto;
+  right: 12px;
+}
+
+html[dir='rtl'] .checklist li {
+  padding-left: 0;
+  padding-right: 22px;
+}
+
+html[dir='rtl'] .checklist li::before {
+  left: auto;
+  right: 0;
+}
+
+html[dir='rtl'] .offline-steps {
+  padding-left: 0;
+  padding-right: 1.2em;
+}
+
+html[dir='rtl'] .calc-display {
+  text-align: start;
+}
