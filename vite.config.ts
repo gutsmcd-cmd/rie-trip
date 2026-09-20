@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png'],
+      includeAssets: ['icons/*.png', 'welcome/*.png'],
       manifest: {
         name: 'Rie Trip',
         short_name: 'Rie Trip',

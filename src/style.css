@@ -146,6 +146,115 @@ textarea {
   border-color: rgba(107, 201, 160, 0.35);
 }
 
+/* —— Top-level Home / Trip tabs —— */
+.app-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  margin-bottom: 18px;
+  padding: 4px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--card-border);
+}
+
+.app-tab {
+  min-height: 40px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.app-tab.active {
+  background: rgba(232, 213, 181, 0.22);
+  color: var(--sand);
+}
+
+/* —— Home welcome —— */
+.home-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 4px 0 8px;
+}
+
+.home-scene {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1 / 1.05;
+  margin: 0 auto 4px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 55% at 70% 75%, rgba(26, 58, 92, 0.9) 0%, transparent 60%),
+    linear-gradient(160deg, rgba(18, 42, 74, 0.85), rgba(11, 29, 54, 0.95));
+  border: 1px solid var(--card-border);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.home-portrait {
+  position: absolute;
+  right: -4%;
+  bottom: -6%;
+  width: 72%;
+  height: auto;
+  object-fit: contain;
+  object-position: bottom right;
+  opacity: 0.92;
+  filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
+  pointer-events: none;
+  user-select: none;
+}
+
+.home-bubble {
+  position: absolute;
+  left: 2%;
+  top: 4%;
+  width: 72%;
+  height: auto;
+  object-fit: contain;
+  /* black plate in PNG blends into navy */
+  mix-blend-mode: lighten;
+  opacity: 0.98;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.25));
+  pointer-events: none;
+  user-select: none;
+  z-index: 2;
+  /* nudge so trail dots aim at portrait head */
+  transform: translate(2%, 6%);
+}
+
+.home-greeting {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--sand);
+  text-align: center;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  margin-top: 4px;
+}
+
+.home-caption {
+  font-size: 0.82rem;
+  color: var(--muted);
+  text-align: center;
+  margin-top: -6px;
+}
+
+.home-open-trip {
+  margin-top: 8px;
+  max-width: 280px;
+}
+
+
 .switcher {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -924,3 +1033,16 @@ html[dir='rtl'] .offline-steps {
 html[dir='rtl'] .calc-display {
   text-align: start;
 }
+
+html[dir='rtl'] .home-portrait {
+  right: auto;
+  left: -4%;
+  object-position: bottom left;
+}
+
+html[dir='rtl'] .home-bubble {
+  left: auto;
+  right: 2%;
+  transform: scaleX(-1) translate(2%, 6%);
+}
+
